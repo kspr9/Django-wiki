@@ -1,0 +1,19 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+    Search results for '{{ search_term }}'
+{% endblock %}
+
+{% block body %}
+    
+    <h1>Search results for '{{ search_term }}'</h1>
+    <ul>
+    {% for found_entry in entries_found %}
+    <li><a href="{% url 'entry' found_entry %}">{{ found_entry }}</a></li>
+    {% empty %}
+    <li>No entries match your search term. Try again or create an entry yourself.</li>
+    {% endfor %}
+    </ul>
+
+
+{% endblock %}
