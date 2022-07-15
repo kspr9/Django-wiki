@@ -2,8 +2,11 @@ from django.urls import path
 
 from . import views
 
+app_name="ency"
+
 urlpatterns = [
-    path("", views.index, name="index"),
-    path("wiki/<slug:entry_name>", views.entryview, name="entry"),
-    path("search/", views.entry_search, name="search")
+    path("", views.index, name="index-page"),
+    path("wiki/<str:entry_name>", views.entryview, name="entry"),
+    path("search/", views.entry_search, name="search"),
+    path("add_entry/", views.add_entry, name="add-entry"),
 ]

@@ -1,0 +1,19 @@
+{% extends "encyclopedia/layout.html" %} 
+
+{% block body %}
+
+<h1>Add an Entry to our Wiki</h1>
+<div>You can format your content with markdown syntax to make it bold, italics, lists, tables etc</div>
+<div>If you are not sure about the exact syntax, please refer <a href="https://www.markdownguide.org/basic-syntax/">HERE</a></div>
+<br/>
+{% if message %}
+    <div><b><strong>{{ message }}</strong></b></div><br/>
+{% endif %}
+
+<form action="{% url 'ency:add-entry' %}" method="POST">
+    {% csrf_token %} {{ form }}
+  <!--substituted hard coded form with a NewTaskForm class in 'encyclopedia/views.py'-->
+  <input type="submit" value="Save Entry"/>
+</form>
+<a href="{% url 'ency:index-page' %}">Go Home</a>
+{% endblock %}
