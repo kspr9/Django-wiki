@@ -35,3 +35,17 @@ def get_entry(title):
         return f.read().decode("utf-8")
     except FileNotFoundError:
         return None
+
+def get_entry_seprated(title):
+    """
+    Retrieves an encyclopedia entry by its title. If no such
+    entry exists, the function returns None.
+    """
+    try:
+        f = default_storage.open(f"entries/{title}.md")
+        title = ''.join(f.readlines())
+        #content = f.read()[1:].decode("utf-8")
+        entry_list = [title, content]
+        return entry_list
+    except FileNotFoundError:
+        return None

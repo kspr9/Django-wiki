@@ -25,9 +25,9 @@ class NewEntryForm(forms.Form):
 # this is a helper function to be used for extracting HTML from md file
 def get_entry_html(entry_name):
     # accessing the md file contents
-    entry = util.get_entry(entry_name)
+    all_entry_content = util.get_entry(entry_name)
     # generating html from md file
-    html = md2.markdown(entry)
+    html = md2.markdown(all_entry_content)
 
     return html
 
@@ -76,13 +76,11 @@ def entry_search(request):
     # the user is taken to a search results page that displays a list of all encyclopedia entries
     # that have the query as a substring.
 
-    #all_entries = util.list_entries()
-
     entries_found = [
         found_entry 
         for found_entry in util.list_entries()
-        if search_term.lower() in found_entry.lower()]
-    print(entries_found)
+        if search_term.lower() in found_entry.lower()
+        ]
 
     return render(request, 'encyclopedia/search.html', {
         "search_term": search_term,
@@ -122,4 +120,27 @@ def add_entry(request):
         # give 'add_entry.html' template access to a variable called 'form' and 
         # link it to form builder class above
         "form": NewEntryForm()
+        })
+
+def edit_entry(request, entry_name):
+    # if the edited entry is saved ie method == "POST" then save entry and redirect to entry detail view
+    if request.method == "POST":
+        new_entry_content_md = request.POST.get('editentry-textarea')
+        #html = md2.markdown(new_entry_content_md)
+        #soup = bs(html, 'html.parser')
+        #title = soup.find("h1").string
+        #entry_name = bs(md2.markdown(new_entry_content_md), 'html.parser').find("h1").string
+        
+        util.save_entry(entry_name, new_entry_content_md)
+        return entryview(request, entry_name)
+
+    title_from_entry_list = util.get_entry_seprated(entry_name)[0]
+    contents_from_entry_list = util.get_entry_seprated(entry_name)[2]
+    #html = get_entry_html(entry_name)
+    #title = get_entry_title(entry_name)
+    return render(request, "encyclopedia/edit_entry.html", {
+        # give 'add_entry.html' template access to a variable called 'entry_html' and 'title' and 
+        # link it to form builder class above
+        "entry_contents": contents_from_entry_list,
+        "title": title_from_entry_list,
         })

@@ -8,4 +8,6 @@
     
     {{ entry_html | safe }}
 
+    <a href="{% url 'ency:edit-entry-path' title %}">Edit the Entry</a>
+
 {% endblock %}
