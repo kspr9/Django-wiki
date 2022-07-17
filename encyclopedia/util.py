@@ -36,16 +36,23 @@ def get_entry(title):
     except FileNotFoundError:
         return None
 
-def get_entry_seprated(title):
+def find_entry_title(content):
     """
-    Retrieves an encyclopedia entry by its title. If no such
-    entry exists, the function returns None.
+    Retrieves an changed entry title by searching between the re.search pattern.
     """
-    try:
-        f = default_storage.open(f"entries/{title}.md")
-        title = ''.join(f.readlines())
-        #content = f.read()[1:].decode("utf-8")
-        entry_list = [title, content]
-        return entry_list
-    except FileNotFoundError:
-        return None
+    """
+    pattern = "# (.*?)\"
+    title = re.search(pattern, content).group(1)
+    """
+    start = content.find("# ") + len("# ")
+    end = content.find("\\")
+    title = content[start:end]
+    return title
+
+def get_content_without_title(content):
+    """
+    Retrieves an changed entry content without title by searching between the re.search pattern.
+    """
+    start = content.find("\\") + len("\\")
+    content = content[start:]
+    return content

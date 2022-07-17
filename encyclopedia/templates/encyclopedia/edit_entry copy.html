@@ -1,0 +1,18 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block body %}
+    <form action="{% url 'ency:edit-entry-path' title %}" method="POST">
+        {% csrf_token %}
+        <p>
+            <label for="editentry-textarea">Make the changes you want to "{{ title }}" and press Save</label>
+        </p>
+        <textarea name="editentry-textarea" id="edit-entry-textarea" cols="10" rows="20">{{ entry_contents }}</textarea>
+        <br>
+        <input type="submit" value="Save changes">
+    </form>
+
+{% endblock %}

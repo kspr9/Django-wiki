@@ -5,14 +5,18 @@
 {% endblock %}
 
 {% block body %}
+{% if message %}
+    <div><b><strong>{{ message }}</strong></b></div><br/>
+{% endif %}
     <form action="{% url 'ency:edit-entry-path' title %}" method="POST">
-        {% csrf_token %}
+        {% csrf_token %} 
         <p>
-            <label for="editentry-textarea">Make the changes you want to "{{ title }}" and press Save</label>
+            <label for="new_content">Make the changes you want to "{{ title }}" and press Save</label>
+            <p>Note! Do not change the first # heading of the contents</p>
         </p>
-        <textarea name="editentry-textarea" id="edit-entry-textarea" cols="10" rows="20">{{ entry_contents }}</textarea>
-        <br>
-        <input type="submit" value="Save changes">
+        {{ form }}
+        <!--substituted hard coded form with a NewTaskForm class in 'encyclopedia/views.py'-->
+        <input type="submit" value="Save Changes"/>
     </form>
 
 {% endblock %}

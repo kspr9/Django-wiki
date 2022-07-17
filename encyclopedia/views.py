@@ -1,13 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django import forms
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 
 from . import util
 
-#import markdown as md
 import markdown2 as md2
-from markdown.extensions import Extension
 from bs4 import BeautifulSoup as bs
 
 #########################################################
@@ -15,29 +13,32 @@ from bs4 import BeautifulSoup as bs
 #########################################################
 
 class NewEntryForm(forms.Form):
-    entry_title = forms.CharField(label="Entry Title")
-    entry_content = forms.CharField(widget=forms.Textarea, label="Entry Content")
+    entry_title = forms.CharField(
+        required=True,
+        label="Title of the Entry: ",
+    )
+    entry_content = forms.CharField(
+        required=True,
+        label="",
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control mb-4",
+                "placeholder": "Content (markdown)",
+                "id": "new_content",
+            }
+        ),
+    )
 
-#########################################################
-###   HELPER FUNCTIONS        ###########################
-#########################################################
-
-# this is a helper function to be used for extracting HTML from md file
-def get_entry_html(entry_name):
-    # accessing the md file contents
-    all_entry_content = util.get_entry(entry_name)
-    # generating html from md file
-    html = md2.markdown(all_entry_content)
-
-    return html
-
-# this is a helper function for extracting the title of a md file
-def get_entry_title(entry_name):
-    # for separating title from all html
-    soup = bs(get_entry_html(entry_name), 'html.parser')
-    title = soup.find("h1").string
-
-    return title
+class EditEntryForm(forms.Form):
+    entry_content = forms.CharField(
+        label="",
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control mb-4",
+                "id": "new_content",
+            }
+        ),
+    )
 
 #########################################################
 ###   VIEWS        ######################################
@@ -54,14 +55,12 @@ def entryview(request, entry_name):
     if not util.get_entry(entry_name):
         return render(request, "encyclopedia/notfound.html",)
     
-    # entry = util.get_entry(entry_name)
-    html = get_entry_html(entry_name)
-    title = get_entry_title(entry_name)
-
+    content = util.get_entry(entry_name)
+    content_html = md2.markdown(content)
+    
     return render(request, "encyclopedia/entry.html", {
-            # "entry": entry,
-            "entry_html": html,
-            "title": title,
+            "entry_html": content_html,
+            "title": entry_name,
     })
 
 # Searching function
@@ -88,59 +87,70 @@ def entry_search(request):
     })
 
 def add_entry(request):
-    if request.method == "POST":
-        form = NewEntryForm(request.POST)
-        # checks if the entered form data is valid, then proceeds to save the entry
-        # otherwise redirects back to add_entry page
-        if form.is_valid():
-            # 'list arguments' refers to NewEntryForms variables
-            entry_title = form.cleaned_data["entry_title"]
-            entry_content = f'#{entry_title} \n{form.cleaned_data["entry_content"]}'
-            
-            # Display error message if entry already exsists
-            if util.get_entry(entry_title):
-                message = "The entry that you want to make already exists! Create a different one!"
-                return render(request, "encyclopedia/add_entry.html", {
-                "form": form,
-                "message": message
+    if request.method == "GET":
+        # by default redirects to add_entry page with NewEntryForm initialized
+        return render(request, "encyclopedia/add_entry.html", {
+            # give 'add_entry.html' template access to a variable called 'form' and 
+            # link it to form builder class above
+            "form": NewEntryForm()
             })
-
-            # save the entry data to a file using util.save_entry function
-            util.save_entry(entry_title, entry_content)
-
-            # if a entry is added, redirect to back to home ie index page
-            return entryview(request, entry_title)
-        else:
+    
+    form = NewEntryForm(request.POST)
+    if request.method == "POST" and form.is_valid():
+        entry_title = form.cleaned_data.get("entry_title")
+        entry_content = f'# {entry_title} \n {form.cleaned_data.get("entry_content")}'
+        # Display error message if entry already exsists
+        if util.get_entry(entry_title):
+            message = "The entry that you want to make already exists! Create a different one!"
             return render(request, "encyclopedia/add_entry.html", {
-                "form": form
+            "form": form,
+            "message": message,
             })
 
-    # by default redirects to add_entry page with NewEntryForm initialized
-    return render(request, "encyclopedia/add_entry.html", {
-        # give 'add_entry.html' template access to a variable called 'form' and 
-        # link it to form builder class above
-        "form": NewEntryForm()
+        # save the entry data to a file using util.save_entry function
+        util.save_entry(entry_title, entry_content)
+
+        # if a entry is added, redirect to back to home ie index page
+        return redirect("ency:entry", entry_title)
+    else:
+        return render(request, "encyclopedia/add_entry.html", {
+            "form": form
         })
 
 def edit_entry(request, entry_name):
-    # if the edited entry is saved ie method == "POST" then save entry and redirect to entry detail view
-    if request.method == "POST":
-        new_entry_content_md = request.POST.get('editentry-textarea')
-        #html = md2.markdown(new_entry_content_md)
-        #soup = bs(html, 'html.parser')
-        #title = soup.find("h1").string
-        #entry_name = bs(md2.markdown(new_entry_content_md), 'html.parser').find("h1").string
+    if request.method == "GET":
         
-        util.save_entry(entry_name, new_entry_content_md)
-        return entryview(request, entry_name)
+        title = entry_name
+        all_content = util.get_entry(entry_name)
+        form = EditEntryForm({'entry_content': all_content})
 
-    title_from_entry_list = util.get_entry_seprated(entry_name)[0]
-    contents_from_entry_list = util.get_entry_seprated(entry_name)[2]
-    #html = get_entry_html(entry_name)
-    #title = get_entry_title(entry_name)
-    return render(request, "encyclopedia/edit_entry.html", {
-        # give 'add_entry.html' template access to a variable called 'entry_html' and 'title' and 
-        # link it to form builder class above
-        "entry_contents": contents_from_entry_list,
-        "title": title_from_entry_list,
+        return render(request, "encyclopedia/edit_entry.html", {
+            # give 'edit_entry.html' template access to a variable called 'title' and 'form' and 
+            # link it to form builder class above
+            "title": title,
+            "form": form,
+            })
+    
+    form = EditEntryForm(request.POST)
+    # if the edited entry is saved ie method == "POST" then save entry and redirect to entry detail view
+    if request.method == "POST" and form.is_valid():
+        # reuse the same name for the entry >> no changing the name
+        entry_title = entry_name
+        # get the contents from EditEntryForm
+        entry_content = form.cleaned_data.get("entry_content")
+        # saving the entry with new data
+        util.save_entry(entry_title, entry_content)
+        # redirecting user back to entry detail page
+        return redirect("ency:entry", entry_title)
+    else:
+        message = "Something went wrong with imputting data to entry change form. Try again"
+        return render(request, "encyclopedia/edit_entry.html", {
+            "form": form,
+            "message": message
         })
+        
+
+    # defining the title to pass to html. Title should not be changed, or new entry will be created
+    # displaying only contents without title in textarea
+    
+    

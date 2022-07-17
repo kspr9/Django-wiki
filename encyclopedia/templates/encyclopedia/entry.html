@@ -1,13 +1,15 @@
 {% extends "encyclopedia/layout.html" %}
 
 {% block title %}
-    {{ title }}
+    {{ title }} | Encyclopedia Entry
 {% endblock %}
 
 {% block body %}
-    
+    <hr>
     {{ entry_html | safe }}
-
-    <a href="{% url 'ency:edit-entry-path' title %}">Edit the Entry</a>
+    <hr>
+    <div>
+    Want to add something? <a href="{% url 'ency:edit-entry-path' title %}">Edit</a> the Entry
+    </div>
 
 {% endblock %}
