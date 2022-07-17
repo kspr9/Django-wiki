@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django import forms
 from django.urls import reverse
 from django.http import HttpResponseRedirect
+import random
 
 from . import util
 
@@ -149,8 +150,8 @@ def edit_entry(request, entry_name):
             "message": message
         })
         
+def random_view(request):
+    list_of_entries = util.list_entries()
+    random_choice = random.choice(list_of_entries)
+    return redirect("ency:entry", random_choice)
 
-    # defining the title to pass to html. Title should not be changed, or new entry will be created
-    # displaying only contents without title in textarea
-    
-    
